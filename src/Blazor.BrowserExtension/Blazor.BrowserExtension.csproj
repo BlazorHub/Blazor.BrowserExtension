@@ -4,10 +4,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GenerateDependencyFile>false</GenerateDependencyFile>
-	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsShippingPackage>true</IsShippingPackage>
     <HasReferenceAssembly>false</HasReferenceAssembly>
-    <IncludeWebExtensionAssets>false</IncludeWebExtensionAssets>
     <BuildBlazorToBrowserExtension>false</BuildBlazorToBrowserExtension>
   </PropertyGroup>
 
@@ -20,17 +18,30 @@
     <RepositoryUrl>https://github.com/mingyaulee/Blazor.BrowserExtension</RepositoryUrl>
     <PackageTags>Blazor Browser Chrome Firefox Edge Extension Addons .Net</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>Icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Include="build\**">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
-	</Content>
-    <Content Include="content\**">
+    </Content>
+    <Content Include="content\dist\**">
       <Pack>true</Pack>
-      <PackagePath>content</PackagePath>
-	</Content>
+      <PackagePath>content\BrowserExtensionScripts</PackagePath>
+    </Content>
+    <Content Include="JsFetchHttpClient\JsHttpClient.js">
+      <Pack>true</Pack>
+      <PackagePath>content\BrowserExtensionScripts</PackagePath>
+    </Content>
+    <Content Include="content\src\lib\**">
+      <Pack>true</Pack>
+      <PackagePath>content\BrowserExtensionScripts\lib</PackagePath>
+    </Content>
+    <Content Include="..\Icon\Icon.png">
+      <Pack>true</Pack>
+      <PackagePath></PackagePath>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -38,14 +49,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.0" />
     <PackageReference Include="Microsoft.JSInterop" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="WebExtension.Net" Version="0.2.1" IncludeAssets="all" PrivateAssets="none" />
+    <PackageReference Include="JsBind.Net.Extensions.DependencyInjection" Version="0.2.5" PrivateAssets="contentfiles" />
+    <PackageReference Include="WebExtensions.Net.Extensions.DependencyInjection" Version="0.9.2" PrivateAssets="contentfiles" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Blazor.BrowserExtension.Build\Blazor.BrowserExtension.Build.csproj">
-      <IncludeAssets>all</IncludeAssets>
-      <PrivateAssets>none</PrivateAssets>
-    </ProjectReference>
+    <ProjectReference Include="..\Blazor.BrowserExtension.Build\Blazor.BrowserExtension.Build.csproj" PrivateAssets="contentfiles" />
   </ItemGroup>
 
 </Project>

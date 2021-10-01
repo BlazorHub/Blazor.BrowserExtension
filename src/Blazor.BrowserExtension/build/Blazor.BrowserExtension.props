@@ -2,11 +2,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <BrowserExtensionAssetsPath Condition="'$(BrowserExtensionAssetsPath)' == ''">wwwroot</BrowserExtensionAssetsPath>
+    <BrowserExtensionEnvironment Condition="'$(BrowserExtensionEnvironment)' == ''"></BrowserExtensionEnvironment>
     <IncludeBrowserExtensionAssets Condition="'$(IncludeBrowserExtensionAssets)' == ''">true</IncludeBrowserExtensionAssets>
-    <!-- Define build properties for WebExtension.Net -->
-    <WebExtensionAssetsPath Condition="'$(WebExtensionAssetsPath)' == ''">$(BrowserExtensionAssetsPath)</WebExtensionAssetsPath>
-    <IncludeWebExtensionAssets Condition="'$(IncludeBrowserExtensionAssets)' != 'false'">true</IncludeWebExtensionAssets>
+    <BrowserExtensionAssetsPath Condition="'$(BrowserExtensionAssetsPath)' == ''">wwwroot</BrowserExtensionAssetsPath>
   </PropertyGroup>
 
 </Project>

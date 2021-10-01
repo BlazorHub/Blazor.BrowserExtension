@@ -2,17 +2,28 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <BrowserExtensionAssetsPath Condition="'$(BrowserExtensionAssetsPath)' == ''">wwwroot</BrowserExtensionAssetsPath>
+    <BrowserExtensionBootstrap Condition="'$(BrowserExtensionBootstrap)' == ''">false</BrowserExtensionBootstrap>
     <BuildBlazorToBrowserExtension Condition="'$(BuildBlazorToBrowserExtension)' == ''">true</BuildBlazorToBrowserExtension>
-    <!-- get the binary file based on the runtime type, net5.0 for dotnet build and net472 for VS build -->
-    <BrowserExtensionBuildTaskFolder Condition="'$(MSBuildRuntimeType)' == 'Core'">net5.0</BrowserExtensionBuildTaskFolder>
-    <BrowserExtensionBuildTaskFolder Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</BrowserExtensionBuildTaskFolder>
-    <BrowserExtensionBuildTaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(BrowserExtensionBuildTaskFolder)\Blazor.BrowserExtension.Build.dll</BrowserExtensionBuildTaskAssembly>
+    <PublishBlazorToBrowserExtension Condition="'$(PublishBlazorToBrowserExtension)' == ''">true</PublishBlazorToBrowserExtension>
+    <BrowserExtensionAssetsPath Condition="'$(BrowserExtensionAssetsPath)' == ''">wwwroot</BrowserExtensionAssetsPath>
+    <BrowserExtensionOutputPath Condition="'$(BrowserExtensionOutputPath)' == ''">browserextension</BrowserExtensionOutputPath>
+    <BrowserExtensionRoutingEntryFile Condition="'$(BrowserExtensionRoutingEntryFile)' == ''">index.html</BrowserExtensionRoutingEntryFile>
+    <BrowserExtensionEnableCompression Condition="'$(BrowserExtensionEnableCompression)' == ''">$(BlazorEnableCompression)</BrowserExtensionEnableCompression>
+    <BrowserExtensionEnableCompression Condition="'$(BrowserExtensionEnableCompression)' == ''">true</BrowserExtensionEnableCompression>
+    <!-- Get the binary file based on the runtime type, net5.0 for dotnet build and net472 for VS build -->
+    <_BrowserExtensionBuildTaskFolder Condition="'$(MSBuildRuntimeType)' == 'Core'">net5.0</_BrowserExtensionBuildTaskFolder>
+    <_BrowserExtensionBuildTaskFolder Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BrowserExtensionBuildTaskFolder>
+    <_BrowserExtensionBuildOutputFolder Condition="'$(_BrowserExtensionBuildOutputFolder)' == ''">tasks</_BrowserExtensionBuildOutputFolder>
+    <_BrowserExtensionBuildTaskAssembly Condition="'$(_BrowserExtensionBuildTaskAssembly)' == ''">$(MSBuildThisFileDirectory)..\$(_BrowserExtensionBuildOutputFolder)\$(_BrowserExtensionBuildTaskFolder)\Blazor.BrowserExtension.Build.dll</_BrowserExtensionBuildTaskAssembly>
   </PropertyGroup>
 
-  <!-- register the tasks from this assembly -->
-  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionReplaceContent" AssemblyFile="$(BrowserExtensionBuildTaskAssembly)" />
-  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionSafeNamespace" AssemblyFile="$(BrowserExtensionBuildTaskAssembly)" />
-  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionValidateManifest" AssemblyFile="$(BrowserExtensionBuildTaskAssembly)" />
+  <!-- Register the tasks from this assembly -->
+  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionBootstrapFile" AssemblyFile="$(_BrowserExtensionBuildTaskAssembly)" />
+  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionProcessPublishFiles" AssemblyFile="$(_BrowserExtensionBuildTaskAssembly)" />
+  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionProcessRoutingFiles" AssemblyFile="$(_BrowserExtensionBuildTaskAssembly)" />
+  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionProcessStaticWebAssetsManifest" AssemblyFile="$(_BrowserExtensionBuildTaskAssembly)" />
+  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionReplaceContent" AssemblyFile="$(_BrowserExtensionBuildTaskAssembly)" />
+  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionValidateManifest" AssemblyFile="$(_BrowserExtensionBuildTaskAssembly)" />
+  <UsingTask TaskName="Blazor.BrowserExtension.Build.Tasks.BlazorToBrowserExtensionWriteConfigFile" AssemblyFile="$(_BrowserExtensionBuildTaskAssembly)" />
 
 </Project>

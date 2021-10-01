@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "mingyaulee",
+  "classifications": [
+    "Web",
+    "Blazor",
+    "WebAssembly",
+    "BrowserExtension"
+  ],
+  "name": "Browser extension with Blazor WebAssembly",
+  "description": "Template to create a browser extension with Blazor WebAssembly.",
+  "identity": "Blazor.BrowserExtension",
+  "shortName": "browserext",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "HelloBlazorExtension",
+  "defaultName": "BrowserExtension1",
+  "preferNameDirectory": true,
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net5.0",
+          "description": "Target .NET 5.0"
+        },
+        {
+          "choice": "net6.0",
+          "description": "Target .NET 6.0"
+        }
+      ],
+      "defaultValue": "net5.0",
+      "replaces": "net5.0"
+    },
+    "IsNet5": {
+      "type": "computed",
+      "value": "Framework == \"net5.0\""
+    },
+    "IsNet6": {
+      "type": "computed",
+      "value": "Framework == \"net6.0\""
+    }
+  }
+}

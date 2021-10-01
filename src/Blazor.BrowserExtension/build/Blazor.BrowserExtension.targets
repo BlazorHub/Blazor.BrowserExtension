@@ -1,54 +1,127 @@
 ﻿<!-- build/Blazor.BrowserExtension.targets -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!-- Region
+    Adds the content JavaScript files from the NuGet package to the project.
+  -->
   <PropertyGroup>
-    <BrowserExtensionAssetsContentsPath>$(MSBuildThisFileDirectory)..\content\BrowserExtensionScripts</BrowserExtensionAssetsContentsPath>
-    <BrowserExtensionAssetsTargetPath>$(BrowserExtensionAssetsPath)\BrowserExtensionScripts</BrowserExtensionAssetsTargetPath>
-    <BrowserExtensionAssetsOutputPath>$(TargetDir)$(BrowserExtensionAssetsPath)\BrowserExtensionScripts</BrowserExtensionAssetsOutputPath>
+    <_BrowserExtension_Package_Contents_Scripts_Directory Condition="'$(_BrowserExtension_Package_Contents_Scripts_Directory)' == ''">$(MSBuildThisFileDirectory)..\content\BrowserExtensionScripts</_BrowserExtension_Package_Contents_Scripts_Directory>
   </PropertyGroup>
 
-  <!-- this will add the files to be copied to the output directory during build -->
   <ItemGroup Condition="'$(IncludeBrowserExtensionAssets)' == 'true'">
-    <None Include="$(BrowserExtensionAssetsContentsPath)\Core.js" Link="$(BrowserExtensionAssetsTargetPath)\Core.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="$(BrowserExtensionAssetsContentsPath)\Background.js" Link="$(BrowserExtensionAssetsTargetPath)\Background.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="$(BrowserExtensionAssetsContentsPath)\ContentScript.js" Link="$(BrowserExtensionAssetsTargetPath)\ContentScript.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="$(BrowserExtensionAssetsContentsPath)\lib\browser-polyfill.js" Link="$(BrowserExtensionAssetsTargetPath)\lib\browser-polyfill.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="$(BrowserExtensionAssetsContentsPath)\lib\browser-polyfill.js.map" Link="$(BrowserExtensionAssetsTargetPath)\lib\browser-polyfill.js.map">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="$(BrowserExtensionAssetsContentsPath)\lib\browser-polyfill.min.js" Link="$(BrowserExtensionAssetsTargetPath)\lib\browser-polyfill.min.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="$(BrowserExtensionAssetsContentsPath)\lib\browser-polyfill.min.js.map" Link="$(BrowserExtensionAssetsTargetPath)\lib\browser-polyfill.min.js.map">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <StaticWebAsset Include="$(_BrowserExtension_Package_Contents_Scripts_Directory)\**\*.*">
+      <SourceType>Package</SourceType>
+      <SourceId>Blazor.BrowserExtension</SourceId>
+      <ContentRoot>$(_BrowserExtension_Package_Contents_Scripts_Directory)</ContentRoot>
+      <BasePath>_content/Blazor.BrowserExtension</BasePath>
+      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+    </StaticWebAsset>
   </ItemGroup>
+  <!-- EndRegion -->
 
-  <!-- this will automatically run before the 'RunBuildBlazorToBrowserExtension' target defined in Blazor.BrowserExtension.Build package -->
-  <Target Name="RunTokenReplacementToBrowserExtension" BeforeTargets="RunBuildBlazorToBrowserExtension" Condition="'$(BuildBlazorToBrowserExtension)' == 'true'">
+  <!-- Target
+    Runs only when another target depends on this target.
+    Defines the config for browser extension.
+  -->
+  <Target Name="DefineBlazorToBrowserExtensionConfig">
 
-    <Message Importance="high" Text="Replacing content of core Blazor.BrowserExtension *.js files" />
+    <PropertyGroup>
+      <_BrowserExtension_Config_HasAppJs Condition="Exists('$(ProjectDir)$(BrowserExtensionAssetsPath)\app.js')">true</_BrowserExtension_Config_HasAppJs>
+    </PropertyGroup>
+
     <ItemGroup>
-      <BrowserExtensionAssetsOutputJsFiles Include="$(BrowserExtensionAssetsOutputPath)\*.js" />
+      <BrowserExtensionConfig Include="Environment name">
+        <Key>EnvironmentName</Key>
+        <Value>$(BrowserExtensionEnvironment)</Value>
+      </BrowserExtensionConfig>
+      <BrowserExtensionConfig Include="Compression enabled">
+        <Key>CompressionEnabled</Key>
+        <Value>$(BrowserExtensionEnableCompression)</Value>
+        <Type>bool</Type>
+      </BrowserExtensionConfig>
+      <BrowserExtensionConfig Include="Has app.js">
+        <Key>HasAppJs</Key>
+        <Value>$(_BrowserExtension_Config_HasAppJs)</Value>
+        <Type>bool</Type>
+      </BrowserExtensionConfig>
     </ItemGroup>
-	<BlazorToBrowserExtensionSafeNamespace Input="$(ProjectName)" Replacement="_">
-      <Output TaskParameter="Output" PropertyName="BlazorProjectSafeProjectName" />
-	</BlazorToBrowserExtensionSafeNamespace>
+
+  </Target>
+
+  <!-- Target
+    Runs before the build happens.
+    Writes the configuration file in the intermediate directory and add as StaticWebAsset.
+  -->
+  <Target Name="WriteBlazorToBrowserExtensionBuildConfigFile"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(IncludeBrowserExtensionAssets)' == 'true' and '$(BuildBlazorToBrowserExtension)' == 'true'"
+          DependsOnTargets="DefineBlazorToBrowserExtensionConfig">
+
+    <PropertyGroup>
+      <_BrowserExtension_Project_IntermediateOutput_ConfigFile_Directory>$(ProjectDir)$(IntermediateOutputPath)browserextension\build</_BrowserExtension_Project_IntermediateOutput_ConfigFile_Directory>
+      <_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath>$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_Directory)\browserextension.config.json</_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath>
+    </PropertyGroup>
+
     <ItemGroup>
-      <BrowserExtensionReplaceAssetsOutputJsFilesContents Include="Global variable BlazorBrowserExtension">
-        <From>__ProjectName__</From>
-        <To>$(BlazorProjectSafeProjectName)</To>
-      </BrowserExtensionReplaceAssetsOutputJsFilesContents>
+      <!-- Force disable compression when build -->
+      <BrowserExtensionConfig Condition="'%(BrowserExtensionConfig.Key)' == 'CompressionEnabled'">
+        <Value>false</Value>
+      </BrowserExtensionConfig>
     </ItemGroup>
-    <BlazorToBrowserExtensionReplaceContent Files="@(BrowserExtensionAssetsOutputJsFiles)" Replace="@(BrowserExtensionReplaceAssetsOutputJsFilesContents)" FailOnWarning="true" FailMessage="Clean the project before build" />
+
+    <Message Importance="high" Text="Creating configuration file '$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath)'" />
+    <BlazorToBrowserExtensionWriteConfigFile Input="@(BrowserExtensionConfig)"
+                                             FilePath="$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath)" />
+
+    <ItemGroup>
+      <StaticWebAsset Include="$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath)">
+        <SourceType>Computed</SourceType>
+        <SourceId>Blazor.BrowserExtension</SourceId>
+        <ContentRoot>$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_Directory)</ContentRoot>
+        <BasePath>_content</BasePath>
+        <RelativePath>_content/browserextension.config.json</RelativePath>
+        <OriginalItemSpec>$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath)</OriginalItemSpec>
+        <AssetKind>All</AssetKind>
+        <AssetMode>All</AssetMode>
+        <AssetRole>Primary</AssetRole>
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      </StaticWebAsset>
+    </ItemGroup>
+
+  </Target>
+
+  <!-- Target
+    Runs before the publish happens.
+    Writes the configuration file in the intermediate directory and add as ResolvedFileToPublish.
+  -->
+  <Target Name="WriteBlazorToBrowserExtensionPublishConfigFile"
+          BeforeTargets="BeforePublish"
+          Condition="'$(IncludeBrowserExtensionAssets)' == 'true' and '$(BuildBlazorToBrowserExtension)' == 'true'"
+          DependsOnTargets="DefineBlazorToBrowserExtensionConfig">
+
+    <PropertyGroup>
+      <_BrowserExtension_Project_IntermediateOutput_ConfigFile_Directory>$(ProjectDir)$(IntermediateOutputPath)browserextension\publish</_BrowserExtension_Project_IntermediateOutput_ConfigFile_Directory>
+      <_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath>$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_Directory)\browserextension.config.json</_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <!-- Force disable compression when build -->
+      <BrowserExtensionConfig Condition="'%(BrowserExtensionConfig.Key)' == 'CompressionEnabled'">
+        <Value>$(BrowserExtensionEnableCompression)</Value>
+      </BrowserExtensionConfig>
+    </ItemGroup>
+
+    <Message Importance="high" Text="Creating configuration file '$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath)'" />
+    <BlazorToBrowserExtensionWriteConfigFile Input="@(BrowserExtensionConfig)"
+                                             FilePath="$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath)" />
+
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(_BrowserExtension_Project_IntermediateOutput_ConfigFile_FilePath)"
+                             ExcludeFromSingleFile="true"
+                             CopyToPublishDirectory="Always"
+                             RelativePath="$(BrowserExtensionAssetsPath)\_content\browserextension.config.json" />
+    </ItemGroup>
 
   </Target>
 
